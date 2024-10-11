@@ -19,11 +19,7 @@ def process_data(lines, start_datetime, end_datetime):
         # Try parsing the datetime with the correct format
         try:
             event_datetime = datetime.strptime(timestamp_str, "%Y-%m-%d %p %I:%M")
-            print("Event date: ", event_datetime)
-            print("Time Stamp: ", timestamp_str)
-            print("Start Date time: ", start_datetime)
         except ValueError:
-            print(f"Skipping invalid timestamp: {timestamp_str}")  # Log the error
             continue  # Skip this line if parsing fails
 
         # Apply date/time filters
@@ -126,53 +122,67 @@ def export_to_excel(df):
 
 # Streamlit App
 def main():
+    # Set the page title and layout
     st.set_page_config(page_title="Reporting")
-    st.title("Reports")
 
-    # Step 5: Upload the file
+    # App title and description
+    st.title("Reports")
+    st.markdown("""
+        This app allows you to upload a switch log file, filter it by date and time, and generate a summary report of room light activity.
+        Follow the instructions below to use the app.
+    """)
+
+    # Step 1: Upload the file
+    st.subheader("Step 1: Upload your log file")
+    st.info("Upload a `.txt` file that contains the room light activity logs.")
     uploaded_file = st.file_uploader("Choose your input file", type=["txt"])
 
+    # Check if file is uploaded
     if uploaded_file is not None:
         lines = uploaded_file.readlines()
         lines = [line.decode("utf-8") for line in lines]  # Decode to string
 
-        # Step 6: Date range selection
-        st.subheader("Select Date Range")
+        # Step 2: Date range selection
+        st.subheader("Step 2: Select Date Range")
         from_date = st.date_input("From Date", value=datetime.today().date())
         to_date = st.date_input("To Date", value=datetime.today().date())
 
-        # Step 7: Time range selection
-        st.subheader("Select Time Range")
+        # Step 3: Time range selection
+        st.subheader("Step 3: Select Time Range")
         from_time = st.time_input("From Time", value=time(0, 0))
         to_time = st.time_input("To Time", value=time(23, 59))
 
         # Combine date and time into datetime objects
         start_datetime = datetime.combine(from_date, from_time)
-        print("main start time", start_datetime)
         end_datetime = datetime.combine(to_date, to_time)
 
         # Process data with filtering based on the date/time range
         data = process_data(lines, start_datetime, end_datetime)
-        df = create_dataframe(data)
 
-        # Display the DataFrame
-        # st.dataframe(df)
+        # Check if there is data for the selected range
+        if not data:
+            st.warning("No data available for the selected date and time range. Please adjust the filters.")
+        else:
+            # Generate and display the summary report
+            summary = generate_summary(data)
+            if summary:
+                summary_df = create_dataframe(summary)
+                st.success("Report generated successfully!")
+                st.subheader("Summary Report")
+                st.dataframe(summary_df)
 
-        # Generate and display the summary report
-        summary = generate_summary(data)
-        if summary:
-            summary_df = create_dataframe(summary)
-            st.subheader("Summary Report")
-            st.dataframe(summary_df)
+                # Export summary to Excel and download
+                summary_excel_data = export_to_excel(summary_df)
+                st.download_button(
+                    label="Download Summary Excel file",
+                    data=summary_excel_data,
+                    file_name="switch_summary_report.xlsx",
+                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+                )
+            else:
+                st.warning("No 'light off' events were found for the selected range.")
 
-            # Export summary to Excel and download
-            summary_excel_data = export_to_excel(summary_df)
-            st.download_button(
-                label="Download Summary Excel file",
-                data=summary_excel_data,
-                file_name="switch_summary_report.xlsx",
-                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            )
+
 
 
 if __name__ == "__main__":
