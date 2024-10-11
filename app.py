@@ -126,10 +126,10 @@ def main():
     st.set_page_config(page_title="Reporting")
 
     # App title and description
-    st.title("Reports")
+    st.title("Netcreators Smart Room Controller Reports")
     st.markdown("""
-        This app allows you to upload a switch log file, filter it by date and time, and generate a summary report of room light activity.
-        Follow the instructions below to use the app.
+        Upload the .txt file, select the date and time, and generate the summary report of the day.
+        Follow the instructions as given below, to use the app.
     """)
 
     # Step 1: Upload the file
