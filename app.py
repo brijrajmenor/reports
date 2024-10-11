@@ -129,13 +129,13 @@ def main():
     st.title("Netcreators Automation")
     st.title("Smart Room Controller Reports")
     st.markdown("""
-        Upload the .txt file, select the date and time, and generate the summary report of the day.
+        Upload the .txt file, select the date and time, and generate the summary report for the day.
         Follow the instructions as given below, to use the app.
     """)
 
     # Step 1: Upload the file
     st.subheader("Step 1: Upload your log file")
-    st.info("Upload a `.txt` file that contains the room light activity logs.")
+    st.info("Upload `.txt` file that contains the room light activity logs.")
     uploaded_file = st.file_uploader("Choose your input file", type=["txt"])
 
     # Check if file is uploaded
