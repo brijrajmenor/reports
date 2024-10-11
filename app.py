@@ -126,7 +126,7 @@ def export_to_excel(df):
 
 # Streamlit App
 def main():
-    st.set_page_config(page_title="My Custom Report Title")
+    st.set_page_config(page_title="Reporting")
     st.title("Reports")
 
     # Step 5: Upload the file
