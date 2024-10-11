@@ -1,7 +1,8 @@
 import streamlit as st
 import pandas as pd
-from datetime import datetime, time, timedelta
+from datetime import datetime, time
 from io import BytesIO
+
 
 # Step 1: Process the data and calculate time spent
 def process_data(lines, start_datetime, end_datetime):
@@ -121,20 +122,20 @@ def export_to_excel(df):
 
 # Streamlit App
 def main():
-    # JavaScript for redirecting
-redirect_script = """
-<script>
-    if (window.location.pathname.includes('-build')) {
-        window.location.replace("https://reporting.streamlit.app/");
-    }
-</script>
-"""
-
-# Inject the script into your Streamlit app
-st.components.v1.html(redirect_script)
-
     # Set the page title and layout
     st.set_page_config(page_title="Reporting")
+
+    # JavaScript for redirecting
+    redirect_script = """
+    <script>
+        if (window.location.pathname.includes('-build')) {
+            window.location.replace("https://reporting.streamlit.app/");
+        }
+    </script>
+    """
+    
+    # Inject the script into your Streamlit app
+    st.components.v1.html(redirect_script)
 
     # App title and description
     st.title("Netcreators Automation")
@@ -194,8 +195,8 @@ st.components.v1.html(redirect_script)
             else:
                 st.warning("No 'light off' events were found for the selected range.")
 
-
-
+    else:
+        st.warning("Please upload a valid log file to proceed.")
 
 if __name__ == "__main__":
     main()
