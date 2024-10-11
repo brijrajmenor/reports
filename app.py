@@ -5,6 +5,12 @@ from io import BytesIO
 
 
 # Step 1: Process the data and calculate time spent
+import streamlit as st
+import pandas as pd
+from datetime import datetime, time
+from io import BytesIO
+
+# Step 1: Process the data and calculate time spent
 def process_data(lines, start_datetime, end_datetime):
     data = []
     last_on_time = {}
@@ -65,8 +71,8 @@ def process_data(lines, start_datetime, end_datetime):
                 )
                 last_on_time.pop(room)
 
+    print("Processed Data:", data)  # Debug print
     return data
-
 
 # Step 2: Generate Summary Report
 def generate_summary(data):
