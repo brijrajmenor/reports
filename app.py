@@ -174,15 +174,6 @@ def main():
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             )
 
-        # Export to Excel and download original data
-        excel_data = export_to_excel(df)
-        st.download_button(
-            label="Download Original Excel file",
-            data=excel_data,
-            file_name="switch_report_with_time_filtered.xlsx",
-            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        )
-
 
 if __name__ == "__main__":
     main()
