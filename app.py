@@ -126,7 +126,8 @@ def main():
     st.set_page_config(page_title="Reporting")
 
     # App title and description
-    st.title("Netcreators Smart Room Controller Reports")
+    st.title("Netcreators Automation")
+    st.title("Smart Room Controller Reports")
     st.markdown("""
         Upload the .txt file, select the date and time, and generate the summary report of the day.
         Follow the instructions as given below, to use the app.
