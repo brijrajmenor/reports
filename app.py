@@ -133,7 +133,7 @@ def export_to_excel(df):
 
 # Streamlit App
 def main():
-    # Set the page title and layout
+    # Set the page title and layout at the start of the main function
     st.set_page_config(page_title="Reporting")
 
     # App title and description
