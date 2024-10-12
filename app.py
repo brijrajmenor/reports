@@ -4,12 +4,14 @@ import streamlit as st
 import re  # Import regex
 
 # Streamlit app title
-st.set_page_config(page_title="Reporting", page_icon="logo.jpg")
-st.title("Reports")
+st.title("Netcreators Automation")
+st.title("Smart Room Controller Reports")
 st.markdown(
-    "Upload the .txt file, select the date and time, and generate the summary report for the day. Follow the instructions as given below, to use the app."
-)
-
+        """
+        Upload the .txt file, select the date and time, and generate the summary report for the day.
+        Follow the instructions as given below, to use the app.
+    """
+    )
 # File uploader
 uploaded_file = st.file_uploader("Upload your log file", type=["txt"])
 
