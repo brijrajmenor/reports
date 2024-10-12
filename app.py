@@ -1,196 +1,154 @@
-import streamlit as st
 import pandas as pd
-from datetime import datetime, time
-from io import BytesIO
-
-
-# Step 1: Process the data and calculate time spent
+from datetime import timedelta
 import streamlit as st
-import pandas as pd
-from datetime import datetime, time
-from io import BytesIO
+import re  # Import regex
 
-# Step 1: Process the data and calculate time spent
-def process_data(lines, start_datetime, end_datetime):
-    data = []
-    last_on_time = {}
+# Streamlit app title
+st.set_page_config(page_title="Reporting", page_icon="logo.jpg")
+st.title("Reports")
+st.markdown(
+    "Upload the .txt file, select the date and time, and generate the summary report for the day. Follow the instructions as given below, to use the app."
+)
 
-    for line in lines:
-        if not line.strip():  # Skip empty lines
-            continue
+# File uploader
+uploaded_file = st.file_uploader("Upload your log file", type=["txt"])
 
-        parts = line.strip().split("\t")
-        timestamp_str = parts[0]
+if uploaded_file is not None:
+    # Load the data from the uploaded text file
+    log_data = uploaded_file.readlines()
 
-        # Try parsing the datetime with the correct format
-        try:
-            event_datetime = datetime.strptime(timestamp_str, "%Y-%m-%d %p %I:%M")
-        except ValueError:
-            continue  # Skip this line if parsing fails
+    # Extract relevant entries from the log data
+    events = []
+    for line in log_data:
+        line = line.decode("utf-8")  # Decode bytes to string
 
-        # Apply date/time filters
-        if not (start_datetime <= event_datetime <= end_datetime):
-            continue  # Skip if outside of selected range
+        # Regex to ensure space between 'Room no.' and the room number
+        line = re.sub(r"(Room no\.)(\d+)", r"\1 \2", line)
 
-        if "light is ON" in line:
-            room = parts[1].split(" ")[2]  # Extract room number
-            last_on_time[room] = event_datetime
-            data.append(
-                {
-                    "Timestamp": timestamp_str,
-                    "Room": room,
-                    "Status": "on",
-                    "Time Spent": None,
-                }
-            )
+        if "light is ON" in line or "light is OFF" in line:
+            # Split the line to extract timestamp and event details
+            parts = line.split("\t")
+            timestamp = parts[0].strip()
+            room_info = parts[1].strip()
 
-        elif "light is OFF" in line:
-            room = parts[1].split(" ")[2]
-            off_time = event_datetime
+            # Extract room number and light status
+            room_no = room_info.split(" ")[2]
+            light_status = "ON" if "ON" in room_info else "OFF"
 
-            if room in last_on_time:
-                time_spent = off_time - last_on_time[room]
+            # Append to the events list
+            events.append((timestamp, room_no, light_status))
 
-                # Update the last 'on' event with the time spent
-                for record in data:
-                    if (
-                        record["Room"] == room
-                        and record["Status"] == "on"
-                        and record["Time Spent"] is None
-                    ):
-                        record["Time Spent"] = time_spent
-                        break
+    # Create a DataFrame from the events
+    df = pd.DataFrame(events, columns=["Timestamp", "Room No", "Light Status"])
 
-                data.append(
-                    {
-                        "Timestamp": timestamp_str,
-                        "Room": room,
-                        "Status": "off",
-                        "Time Spent": None,
-                    }
-                )
-                last_on_time.pop(room)
+    # Convert Timestamp to datetime
+    df["Timestamp"] = pd.to_datetime(df["Timestamp"], format="%Y-%m-%d %p %I:%M")
 
-    print("Processed Data:", data)  # Debug print
-    return data
+    # Date filter inputs in Streamlit
+    st.sidebar.header("Filter Options")
 
-# Step 2: Generate Summary Report
-def generate_summary(data):
-    summary = []
-
-    for record in data:
-        if record["Status"] == "on" and record["Time Spent"] is not None:
-            # Extract information for the summary report
-            light_on_time = record["Timestamp"]
-            room = record["Room"]
-            light_off_time = None
-            total_time_spent = record["Time Spent"]
-
-            # Find corresponding OFF event
-            for off_record in data:
-                if off_record["Room"] == room and off_record["Status"] == "off":
-                    light_off_time = off_record["Timestamp"]
-                    break
-
-            # Append to summary if we have both ON and OFF events
-            if light_off_time:
-                summary.append(
-                    {
-                        "Room No": room,
-                        "Light On": light_on_time,
-                        "Light Off": light_off_time,
-                        "Total Time Spent": str(total_time_spent),
-                    }
-                )
-
-    # Sort summary by Light On timestamp
-    summary_sorted = sorted(
-        summary, key=lambda x: datetime.strptime(x["Light On"], "%Y-%m-%d %p %I:%M")
+    # Select a date range
+    start_date = st.sidebar.date_input(
+        "Start date", value=pd.to_datetime(df["Timestamp"].min()).date()
     )
-    return summary_sorted
+    end_date = st.sidebar.date_input(
+        "End date", value=pd.to_datetime(df["Timestamp"].max()).date()
+    )
 
-
-# Step 3: Convert data into a DataFrame
-def create_dataframe(data):
-    df = pd.DataFrame(data)
-    return df
-
-
-# Step 4: Export to Excel and provide download option
-def export_to_excel(df):
-    output = BytesIO()
-    writer = pd.ExcelWriter(output, engine="openpyxl")
-    df.to_excel(writer, index=False)
-    writer.close()
-    processed_data = output.getvalue()
-    return processed_data
-
-
-# Streamlit App
-def main():
-    # Set the page title and layout at the start of the main function
-    st.set_page_config(page_title="Reporting")
-
-    # App title and description
-    st.title("Netcreators Automation")
-    st.title("Smart Room Controller Reports")
-    st.markdown("""
-        Upload the .txt file, select the date and time, and generate the summary report for the day.
-        Follow the instructions as given below, to use the app.
-    """)
-
-    # Step 1: Upload the file
-    st.subheader("Step 1: Upload your log file")
-    st.info("Upload `.txt` file that contains the room light activity logs.")
-    uploaded_file = st.file_uploader("Choose your input file", type=["txt"])
-
-    # Check if file is uploaded
-    if uploaded_file is not None:
-        lines = uploaded_file.readlines()
-        lines = [line.decode("utf-8") for line in lines]  # Decode to string
-
-        # Step 2: Date range selection
-        st.subheader("Step 2: Select Date Range")
-        from_date = st.date_input("From Date", value=datetime.today().date())
-        to_date = st.date_input("To Date", value=datetime.today().date())
-
-        # Step 3: Time range selection
-        st.subheader("Step 3: Select Time Range")
-        from_time = st.time_input("From Time", value=time(0, 0))
-        to_time = st.time_input("To Time", value=time(23, 59))
-
-        # Combine date and time into datetime objects
-        start_datetime = datetime.combine(from_date, from_time)
-        end_datetime = datetime.combine(to_date, to_time)
-
-        # Process data with filtering based on the date/time range
-        data = process_data(lines, start_datetime, end_datetime)
-
-        # Check if there is data for the selected range
-        if not data:
-            st.warning("No data available for the selected date and time range. Please adjust the filters.")
-        else:
-            # Generate and display the summary report
-            summary = generate_summary(data)
-            if summary:
-                summary_df = create_dataframe(summary)
-                st.success("Report generated successfully!")
-                st.subheader("Summary Report")
-                st.dataframe(summary_df)
-
-                # Export summary to Excel and download
-                summary_excel_data = export_to_excel(summary_df)
-                st.download_button(
-                    label="Download Summary Excel file",
-                    data=summary_excel_data,
-                    file_name="switch_summary_report.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                )
-            else:
-                st.warning("No 'light off' events were found for the selected range.")
-
+    # Optionally select time range
+    filter_time = st.sidebar.checkbox("Filter by time range")
+    if filter_time:
+        start_time = st.sidebar.time_input(
+            "Start time", value=pd.Timestamp("00:00:00").time()
+        )
+        end_time = st.sidebar.time_input(
+            "End time", value=pd.Timestamp("23:59:59").time()
+        )
     else:
-        st.warning("Please upload a valid log file to proceed.")
+        start_time = pd.Timestamp("00:00:00").time()
+        end_time = pd.Timestamp("23:59:59").time()
 
-if __name__ == "__main__":
-    main()
+    # Combine selected date and time into datetime
+    start_datetime = pd.Timestamp.combine(start_date, start_time)
+    end_datetime = pd.Timestamp.combine(end_date, end_time)
+
+    # Filter the data based on selected date and time range
+    df_filtered = df[
+        (df["Timestamp"] >= start_datetime) & (df["Timestamp"] <= end_datetime)
+    ]
+
+    # Separate ON and OFF events after filtering
+    on_events = df_filtered[df_filtered["Light Status"] == "ON"]
+    off_events = df_filtered[df_filtered["Light Status"] == "OFF"]
+
+    # Clean up the data by ensuring that each ON event is paired with the nearest subsequent OFF event
+    cleaned_summary = []
+
+    for room_no in df_filtered["Room No"].unique():
+        # Filter ON and OFF events for this room
+        on_times = on_events[on_events["Room No"] == room_no].reset_index(drop=True)
+        off_times = off_events[off_events["Room No"] == room_no].reset_index(drop=True)
+
+        # Match ON and OFF events only if ON comes before OFF
+        i, j = 0, 0
+        while i < len(on_times) and j < len(off_times):
+            on_time = on_times.loc[i, "Timestamp"]
+            off_time = off_times.loc[j, "Timestamp"]
+
+            if on_time < off_time:
+                # Calculate duration
+                duration_minutes = (
+                    off_time - on_time
+                ).total_seconds() / 60  # duration in minutes
+                duration_timedelta = timedelta(minutes=duration_minutes)
+
+                # Convert to days, hours, minutes
+                days = duration_timedelta.days
+                hours, minutes = divmod(duration_timedelta.seconds // 60, 60)
+                duration_str = f"{days}d {hours}h {minutes}m"
+
+                # Mark durations less than 15 minutes as Housekeeping
+                if duration_minutes < 15:
+                    label = "Housekeeping"
+                else:
+                    label = "Guest"
+
+                # Append the valid ON-OFF pair and duration
+                cleaned_summary.append(
+                    (on_time, off_time, room_no, duration_str, label)
+                )
+                i += 1
+                j += 1
+            else:
+                j += 1
+
+    # Create a cleaned summary DataFrame
+    cleaned_summary_df = pd.DataFrame(
+        cleaned_summary,
+        columns=["Light ON", "Light OFF", "Room No", "Duration", "Label"],
+    )
+
+    # Filter out durations of 1 minute or less
+    filtered_summary_df = cleaned_summary_df[
+        cleaned_summary_df["Duration"] != "0d 0h 1m"
+    ].reset_index(drop=True)
+
+    # Display the cleaned summary DataFrame in Streamlit
+    st.write("Filtered and Cleaned Summary Data")
+    st.dataframe(filtered_summary_df)
+
+    # Generate dynamic file name based on date range
+    file_name = f"room_summary_{start_date}_to_{end_date}.xlsx".replace(":", "-")
+
+    # Option to download the cleaned data
+    if st.button("Download cleaned data as Excel"):
+        output_file_path = file_name
+        filtered_summary_df.to_excel(output_file_path, index=False)
+
+        with open(output_file_path, "rb") as file:
+            btn = st.download_button(
+                label="Download Excel",
+                data=file,
+                file_name=output_file_path,
+                mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            )
