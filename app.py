@@ -4,15 +4,15 @@ import streamlit as st
 import re  # Import regex
 
 # Streamlit app title
-st.set_page_config(page_title="Reporting", page_icon="logo.jpg")
 st.title("Netcreators Automation")
 st.title("Smart Room Controller Reports")
 st.markdown(
-        """
+    """
         Upload the .txt file, select the date and time, and generate the summary report for the day.
         Follow the instructions as given below, to use the app.
     """
-    )
+)
+
 # File uploader
 uploaded_file = st.file_uploader("Upload your log file", type=["txt"])
 
@@ -80,6 +80,15 @@ if uploaded_file is not None:
         (df["Timestamp"] >= start_datetime) & (df["Timestamp"] <= end_datetime)
     ]
 
+    # ** Add Room Number Filter **
+    room_options = df_filtered["Room No"].unique()
+    selected_rooms = st.sidebar.multiselect(
+        "Select Room Numbers", room_options, room_options
+    )
+
+    # Filter the data based on selected rooms
+    df_filtered = df_filtered[df_filtered["Room No"].isin(selected_rooms)]
+
     # Separate ON and OFF events after filtering
     on_events = df_filtered[df_filtered["Light Status"] == "ON"]
     off_events = df_filtered[df_filtered["Light Status"] == "OFF"]
@@ -118,7 +127,7 @@ if uploaded_file is not None:
 
                 # Append the valid ON-OFF pair and duration
                 cleaned_summary.append(
-                    (on_time, off_time, room_no, duration_str, label)
+                    (room_no, on_time, off_time, duration_str, label)
                 )
                 i += 1
                 j += 1
@@ -128,13 +137,24 @@ if uploaded_file is not None:
     # Create a cleaned summary DataFrame
     cleaned_summary_df = pd.DataFrame(
         cleaned_summary,
-        columns=["Light ON", "Light OFF", "Room No", "Duration", "Label"],
+        columns=["Room No", "Light ON", "Light OFF", "Duration", "Label"],
     )
 
     # Filter out durations of 1 minute or less
     filtered_summary_df = cleaned_summary_df[
         cleaned_summary_df["Duration"] != "0d 0h 1m"
     ].reset_index(drop=True)
+
+    # ** Add Occupancy Filter **
+    occupancy_options = ["Guest", "Housekeeping"]
+    selected_occupancy = st.sidebar.multiselect(
+        "Select Occupancy Type", occupancy_options, occupancy_options
+    )
+
+    # Filter the data based on selected occupancy type
+    filtered_summary_df = filtered_summary_df[
+        filtered_summary_df["Label"].isin(selected_occupancy)
+    ]
 
     # Display the cleaned summary DataFrame in Streamlit
     st.write("Filtered and Cleaned Summary Data")
