@@ -4,6 +4,7 @@ import streamlit as st
 import re  # Import regex
 
 # Streamlit app title
+st.set_page_config("Reporting",page_icon="logo.jpg")
 st.title("Netcreators Automation")
 st.title("Smart Room Controller Reports")
 st.markdown(
