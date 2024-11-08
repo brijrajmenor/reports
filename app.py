@@ -2,9 +2,11 @@ import pandas as pd
 from datetime import timedelta
 import streamlit as st
 import re  # Import regex
+import plotly.express as px
+import plotly.graph_objects as go
 
 # Streamlit app title
-st.set_page_config("Reporting",page_icon="logo.jpg")
+st.set_page_config("Reporting", page_icon="logo.jpg")
 st.title("Netcreators Automation")
 st.title("Smart Room Controller Reports")
 st.markdown(
@@ -176,3 +178,48 @@ if uploaded_file is not None:
                 file_name=output_file_path,
                 mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             )
+
+    # Date-wise Light ON/OFF Count (Bar Chart)
+    if not filtered_summary_df.empty:
+        filtered_summary_df["Date"] = filtered_summary_df["Light ON"].dt.date
+        light_status_count_by_date = (
+            filtered_summary_df.groupby(["Date", "Label"])
+            .size()
+            .reset_index(name="Count")
+        )
+
+        light_status_plot = px.bar(
+            light_status_count_by_date,
+            x="Date",
+            y="Count",
+            color="Label",
+            barmode="group",
+            title="Date-wise Light ON/OFF Count",
+            labels={"Date": "Date", "Count": "Event Count"},
+        )
+        st.plotly_chart(light_status_plot)
+
+    # Date-wise Average Duration of Light ON (Line Chart)
+    if not filtered_summary_df.empty:
+        filtered_summary_df["Date"] = filtered_summary_df["Light ON"].dt.date
+        filtered_summary_df["Duration (minutes)"] = filtered_summary_df[
+            "Duration"
+        ].apply(
+            lambda x: int(x.split("d")[0]) * 1440
+            + int(x.split("d")[1].split("h")[0]) * 60
+            + int(x.split("h")[1].split("m")[0])
+        )
+        avg_duration_by_date = (
+            filtered_summary_df.groupby("Date")["Duration (minutes)"]
+            .mean()
+            .reset_index()
+        )
+
+        avg_duration_plot = px.line(
+            avg_duration_by_date,
+            x="Date",
+            y="Duration (minutes)",
+            title="Date-wise Average Duration of Light ON",
+            labels={"Date": "Date", "Duration (minutes)": "Average Duration (minutes)"},
+        )
+        st.plotly_chart(avg_duration_plot)
