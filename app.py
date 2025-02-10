@@ -10,7 +10,7 @@ from datetime import datetime, timedelta
 import json
 key_dict = json.loads(st.secrets["textkey"])
 cred = credentials.Certificate(key_dict)
-firebase_admin.initialize_app(cred)
+
 
 # Initialize Firestore client
 db = firestore.client()
