@@ -4,17 +4,16 @@ from firebase_admin import credentials, firestore
 import re
 import pandas as pd
 from datetime import datetime, timedelta
-
-# Initialize Firestore client
-# Initialize Firebase if not already initialized
 import json
-key_dict = json.loads(st.secrets["textkey"])
-cred = credentials.Certificate(key_dict)
 
+# Check if Firebase has already been initialized
+if not firebase_admin._apps:
+    key_dict = json.loads(st.secrets["textkey"])
+    cred = credentials.Certificate(key_dict)
+    firebase_admin.initialize_app(cred)
 
-# Initialize Firestore client
+# Initialize Firestore database
 db = firestore.client()
-
 
 def authenticate_user(email, password):
     """Authenticate user using Firestore with proper error handling."""
