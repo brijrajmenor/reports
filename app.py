@@ -1,16 +1,37 @@
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
-import json
-import tempfile
-import requests
+import re
+import pandas as pd
+from datetime import datetime, timedelta
 
-# Set page config (MUST BE THE FIRST STREAMLIT COMMAND)
+# Initialize Firestore client
+db = firestore.client()
+
+def authenticate_user(email, password):
+    """Authenticate user using Firestore with proper error handling."""
+
+    user_ref = db.collection("users").document(email)
+    user_doc = user_ref.get()
+
+    if not user_doc.exists:
+        return "invalid"  # Email not found in Firestore
+
+    user_data = user_doc.to_dict()
+
+    if user_data.get("disabled", False):
+        return "disabled"  # User account is disabled
+
+    if user_data.get("password") == password:
+        return user_data  # Successful login
+
+    return "invalid"  # Incorrect password
+
+
+# Streamlit app title
 st.set_page_config(page_title="Reporting", page_icon="logo.jpg")
 
-# URL to the raw JSON file on GitHub
-
-# Rest of your app code
+# Create a login form
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
@@ -21,9 +42,19 @@ if not st.session_state.logged_in:
     password = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        # Add your authentication logic here
-        st.session_state.logged_in = True
-        st.success("Login successful!")
+        user = authenticate_user(email, password)
+
+        if user == "disabled":
+            st.error("This account is disabled. Please contact the administrator.")
+
+        elif user == "invalid":
+            st.error("Invalid email or password.")
+
+        else:
+            st.session_state.logged_in = True
+            st.session_state.user = user  # Store user data in session state
+            st.success("Login successful!")
+
 else:
     st.write("Welcome to the reports dashboard!")
     st.title("Smart Room Controller Reports")
