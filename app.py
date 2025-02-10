@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 # Initialize Firebase if not already initialized
 import json
 key_dict = json.loads(st.secrets["textkey"])
-cred = service_account.Credentials.from_service_account_info(key_dict)
+cred = Credentials.certificate(key_dict)
 firebase_admin.initialize_app(cred)
 
 # Initialize Firestore client
