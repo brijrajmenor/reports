@@ -7,9 +7,10 @@ from datetime import datetime, timedelta
 
 # Initialize Firestore client
 # Initialize Firebase if not already initialized
-if not firebase_admin._apps:
-    cred = credentials.Certificate("login-for-reporting-firebase-adminsdk-fbsvc-951c1cbb2f.json")  # Update this path
-    firebase_admin.initialize_app(cred)
+import json
+key_dict = json.loads(st.secrets["textkey"])
+creds = service_account.Credentials.from_service_account_info(key_dict)
+firebase_admin.initialize_app(cred)
 
 # Initialize Firestore client
 db = firestore.client()
