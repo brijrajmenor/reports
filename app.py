@@ -1,12 +1,15 @@
 import streamlit as st
 import firebase_admin
-from firebase_admin import credentials
+from firebase_admin import credentials, firestore
 import json
-import requests
 import tempfile
+import requests
+
+# Set page config (MUST BE THE FIRST STREAMLIT COMMAND)
+st.set_page_config(page_title="Reporting", page_icon="logo.jpg")
 
 # URL to the raw JSON file on GitHub
-GITHUB_RAW_URL = "https://github.com/brijrajmenor/reports/blob/main/login-for-reporting-firebase-adminsdk-fbsvc-951c1cbb2f.json"
+GITHUB_RAW_URL = "https://raw.githubusercontent.com/your-username/your-repo/main/firebase-key.json"
 
 # Function to download the Firebase key
 def download_firebase_key(url):
@@ -35,32 +38,10 @@ if firebase_key:
         st.success("Firebase initialized successfully!")
     except Exception as e:
         st.error(f"Failed to initialize Firebase: {e}")
+else:
+    st.error("Firebase key not found in secrets.")
 
-# Function to authenticate user using Firestore (proper handling)
-def authenticate_user(email, password):
-    """Authenticate user using Firestore with proper error handling."""
-
-    user_ref = db.collection("users").document(email)
-    user_doc = user_ref.get()
-
-    if not user_doc.exists:
-        return "invalid"  # Email not found in Firestore
-
-    user_data = user_doc.to_dict()
-
-    if user_data.get("disabled", False):
-        return "disabled"  # User account is disabled
-
-    if user_data.get("password") == password:
-        return user_data  # Successful login
-
-    return "invalid"  # Incorrect password
-
-
-# Streamlit app title
-st.set_page_config(page_title="Reporting", page_icon="logo.jpg")
-
-# Create a login form
+# Rest of your app code
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
@@ -71,20 +52,11 @@ if not st.session_state.logged_in:
     password = st.text_input("Password", type="password")
 
     if st.button("Login"):
-        user = authenticate_user(email, password)
-
-        if user == "disabled":
-            st.error("This account is disabled. Please contact the administrator.")
-
-        elif user == "invalid":
-            st.error("Invalid email or password.")
-
-        else:
-            st.session_state.logged_in = True
-            st.session_state.user = user  # Store user data in session state
-            st.success("Login successful!")
-
+        # Add your authentication logic here
+        st.session_state.logged_in = True
+        st.success("Login successful!")
 else:
+    st.write("Welcome to the reports dashboard!")
     st.title("Smart Room Controller Reports")
     st.markdown(
         """
