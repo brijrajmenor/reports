@@ -2,17 +2,39 @@ import streamlit as st
 import firebase_admin
 from firebase_admin import credentials
 import json
+import requests
+import tempfile
 
-# Load Firebase key from Streamlit secrets
-if "firebase" in st.secrets:
-    firebase_key = st.secrets["firebase"]["key"]
-    cred = credentials.Certificate(json.loads(firebase_key))
-    firebase_admin.initialize_app(cred)
-    db = firestore.client()
-else:
-    st.error("Firebase key not found in secrets. Please check your secrets.toml file.")# Initialize Firestore client
+# URL to the raw JSON file on GitHub
+GITHUB_RAW_URL = "https://raw.githubusercontent.com/your-username/your-repo/main/firebase-key.json"
 
+# Function to download the Firebase key
+def download_firebase_key(url):
+    try:
+        response = requests.get(url)
+        response.raise_for_status()  # Raise an error for bad status codes
+        return response.json()  # Parse the JSON content
+    except Exception as e:
+        st.error(f"Failed to download Firebase key: {e}")
+        return None
 
+# Download the Firebase key
+firebase_key = download_firebase_key(GITHUB_RAW_URL)
+
+if firebase_key:
+    try:
+        # Save the key to a temporary file
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as temp_file:
+            json.dump(firebase_key, temp_file)
+            temp_file_path = temp_file.name
+
+        # Initialize Firebase
+        cred = credentials.Certificate(temp_file_path)
+        firebase_admin.initialize_app(cred)
+        db = firestore.client()
+        st.success("Firebase initialized successfully!")
+    except Exception as e:
+        st.error(f"Failed to initialize Firebase: {e}")
 
 # Function to authenticate user using Firestore (proper handling)
 def authenticate_user(email, password):
