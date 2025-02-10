@@ -6,7 +6,14 @@ import pandas as pd
 from datetime import datetime, timedelta
 
 # Initialize Firestore client
+# Initialize Firebase if not already initialized
+if not firebase_admin._apps:
+    cred = credentials.Certificate("https://github.com/brijrajmenor/reports/blob/main/login-for-reporting-firebase-adminsdk-fbsvc-951c1cbb2f.json")  # Update this path
+    firebase_admin.initialize_app(cred)
+
+# Initialize Firestore client
 db = firestore.client()
+
 
 def authenticate_user(email, password):
     """Authenticate user using Firestore with proper error handling."""
