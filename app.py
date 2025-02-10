@@ -6,7 +6,7 @@ import requests
 import tempfile
 
 # URL to the raw JSON file on GitHub
-GITHUB_RAW_URL = "https://raw.githubusercontent.com/your-username/your-repo/main/firebase-key.json"
+GITHUB_RAW_URL = "https://github.com/brijrajmenor/reports/blob/main/login-for-reporting-firebase-adminsdk-fbsvc-951c1cbb2f.json"
 
 # Function to download the Firebase key
 def download_firebase_key(url):
