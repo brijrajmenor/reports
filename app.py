@@ -1,12 +1,17 @@
 import streamlit as st
 import firebase_admin
-from firebase_admin import credentials, firestore
-import re
-import pandas as pd
-from datetime import datetime, timedelta
+from firebase_admin import credentials
+import json
 
-# Initialize Firestore client
-db = firestore.client()
+# Load Firebase key from Streamlit secrets
+if "firebase" in st.secrets:
+    firebase_key = st.secrets["firebase"]["key"]
+    cred = credentials.Certificate(json.loads(firebase_key))
+    firebase_admin.initialize_app(cred)
+    db = firestore.client()
+else:
+    st.error("Firebase key not found in secrets. Please check your secrets.toml file.")# Initialize Firestore client
+
 
 
 # Function to authenticate user using Firestore (proper handling)
