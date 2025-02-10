@@ -9,37 +9,6 @@ import requests
 st.set_page_config(page_title="Reporting", page_icon="logo.jpg")
 
 # URL to the raw JSON file on GitHub
-GITHUB_RAW_URL = "https://github.com/brijrajmenor/reports/blob/main/login-for-reporting-firebase-adminsdk-fbsvc-951c1cbb2f.json"
-
-# Function to download the Firebase key
-def download_firebase_key(url):
-    try:
-        response = requests.get(url)
-        response.raise_for_status()  # Raise an error for bad status codes
-        return response.json()  # Parse the JSON content
-    except Exception as e:
-        st.error(f"Failed to download Firebase key: {e}")
-        return None
-
-# Download the Firebase key
-firebase_key = download_firebase_key(GITHUB_RAW_URL)
-
-if firebase_key:
-    try:
-        # Save the key to a temporary file
-        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".json") as temp_file:
-            json.dump(firebase_key, temp_file)
-            temp_file_path = temp_file.name
-
-        # Initialize Firebase
-        cred = credentials.Certificate(temp_file_path)
-        firebase_admin.initialize_app(cred)
-        db = firestore.client()
-        st.success("Firebase initialized successfully!")
-    except Exception as e:
-        st.error(f"Failed to initialize Firebase: {e}")
-else:
-    st.error("Firebase key not found in secrets.")
 
 # Rest of your app code
 if "logged_in" not in st.session_state:
