@@ -1,5 +1,7 @@
+--prefer-binary
 streamlit==1.26.0
 firebase-admin==6.2.0
-pandas==1.5.3  # Use a version with pre-built wheels
+pandas==1.5.3
+pillow==9.5.0
 python-dateutil==2.8.2
 pytz==2023.3
