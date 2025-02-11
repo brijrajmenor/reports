@@ -4,9 +4,10 @@ from firebase_admin import credentials, firestore
 import re
 import pandas as pd
 from datetime import datetime, timedelta
-import json
 
-# Check if Firebase has already been initialized
+st.set_page_config(page_title="Reporting", page_icon="logo.jpg")
+
+# Initialize Firebase if not already initialized
 if not firebase_admin._apps:
     key_dict = json.loads(st.secrets["textkey"])
     cred = credentials.Certificate(key_dict)
@@ -15,6 +16,7 @@ if not firebase_admin._apps:
 # Initialize Firestore database
 db = firestore.client()
 
+
 def authenticate_user(email, password):
     """Authenticate user using Firestore with proper error handling."""
 
@@ -22,27 +24,33 @@ def authenticate_user(email, password):
     user_doc = user_ref.get()
 
     if not user_doc.exists:
+
         return "invalid"  # Email not found in Firestore
 
     user_data = user_doc.to_dict()
 
     if user_data.get("disabled", False):
+
         return "disabled"  # User account is disabled
 
     if user_data.get("password") == password:
+        st.write("Login successful!")  # Debug statement
         return user_data  # Successful login
 
+    st.write("Incorrect password.")  # Debug statement
     return "invalid"  # Incorrect password
 
 
 # Streamlit app title
-st.set_page_config(page_title="Reporting", page_icon="logo.jpg")
+
 
 # Create a login form
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
 
+
 if not st.session_state.logged_in:
+
     st.title("Login")
 
     email = st.text_input("Email")
@@ -61,9 +69,9 @@ if not st.session_state.logged_in:
             st.session_state.logged_in = True
             st.session_state.user = user  # Store user data in session state
             st.success("Login successful!")
-
 else:
-    st.write("Welcome to the reports dashboard!")
+
+
     st.title("Smart Room Controller Reports")
     st.markdown(
         """
