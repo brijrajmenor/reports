@@ -1,57 +1,45 @@
 import streamlit as st
 import firebase_admin
 from firebase_admin import credentials, firestore
-import re
-import pandas as pd
 import json
-from datetime import datetime, timedelta
 
 st.set_page_config(page_title="Reporting", page_icon="logo.jpg")
 
-# Initialize Firebase if not already initialized
+# Initialize Firebase only once
 if not firebase_admin._apps:
     key_dict = json.loads(st.secrets["textkey"])
     cred = credentials.Certificate(key_dict)
     firebase_admin.initialize_app(cred)
 
-# Initialize Firestore database
+# Initialize Firestore client
 db = firestore.client()
-
 
 def authenticate_user(email, password):
     """Authenticate user using Firestore with proper error handling."""
-
     user_ref = db.collection("users").document(email)
     user_doc = user_ref.get()
 
     if not user_doc.exists:
-
         return "invalid"  # Email not found in Firestore
 
     user_data = user_doc.to_dict()
 
     if user_data.get("disabled", False):
-
         return "disabled"  # User account is disabled
 
     if user_data.get("password") == password:
-        st.write("Login successful!")  # Debug statement
         return user_data  # Successful login
 
-    st.write("Incorrect password.")  # Debug statement
     return "invalid"  # Incorrect password
 
-
-# Streamlit app title
-
-
-# Create a login form
+# Ensure session state exists
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
+if "user" not in st.session_state:
+    st.session_state.user = None
 
-
+# LOGIN FORM
 if not st.session_state.logged_in:
-
     st.title("Login")
 
     email = st.text_input("Email")
@@ -62,17 +50,17 @@ if not st.session_state.logged_in:
 
         if user == "disabled":
             st.error("This account is disabled. Please contact the administrator.")
-
         elif user == "invalid":
             st.error("Invalid email or password.")
-
         else:
             st.session_state.logged_in = True
-            st.session_state.user = user  # Store user data in session state
+            st.session_state.user = user  # Store user data
             st.success("Login successful!")
-else:
+            
+            # 🔴 **Force a rerun to update the UI immediately**
+            st.experimental_rerun()
 
-
+if not st.session_state.logged_in:
     st.title("Smart Room Controller Reports")
     st.markdown(
         """
