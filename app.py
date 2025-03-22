@@ -52,8 +52,8 @@ if "logged_in" not in st.session_state:
 
 if not st.session_state.logged_in:
 
-    st.title("Netcreators Automation")
-    st.title("Login")
+    st.header("Netcreators Automation", divider="gray")
+    st.subheader("This is a subheader with a divider")
 
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
@@ -74,8 +74,8 @@ if not st.session_state.logged_in:
 else:
 
 
-    st.title("Netcreators Automation")
-    st.title("Smart Room Controller Reports")
+    st.header("Netcreators Automation", divider="gray")
+    st.subheader("Smart Room Controller Reports")
     st.markdown(
         """
             Upload the .txt file, select the date and time, and generate the summary report for the day.
