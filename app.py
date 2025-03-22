@@ -53,7 +53,7 @@ if "logged_in" not in st.session_state:
 if not st.session_state.logged_in:
 
     st.header("Netcreators Automation", divider="gray")
-    st.subheader("This is a subheader with a divider")
+    st.subheader("Login")
 
     email = st.text_input("Email")
     password = st.text_input("Password", type="password")
