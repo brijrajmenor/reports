@@ -52,6 +52,7 @@ if "logged_in" not in st.session_state:
 
 if not st.session_state.logged_in:
 
+    st.title("Netcreators Automation")
     st.title("Login")
 
     email = st.text_input("Email")
@@ -73,6 +74,7 @@ if not st.session_state.logged_in:
 else:
 
 
+    st.title("Netcreators Automation")
     st.title("Smart Room Controller Reports")
     st.markdown(
         """
