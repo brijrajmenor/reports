@@ -2,3 +2,5 @@ streamlit==1.26.0
 firebase-admin==6.2.0
 Pillow==9.4.0
 openpyxl==3.1.5
+protobuf>=4.25.8 # not directly required, pinned by Snyk to avoid a vulnerability
+urllib3>=2.5.0 # not directly required, pinned by Snyk to avoid a vulnerability
