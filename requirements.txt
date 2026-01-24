@@ -2,3 +2,4 @@ streamlit==1.26.0
 firebase-admin==6.2.0
 Pillow==9.4.0
 openpyxl==3.1.5
+pyasn1>=0.6.2 # not directly required, pinned by Snyk to avoid a vulnerability
